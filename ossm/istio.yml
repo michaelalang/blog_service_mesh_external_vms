@@ -1,0 +1,36 @@
+apiVersion: sailoperator.io/v1
+kind: Istio
+metadata:
+  name: default
+spec:
+  namespace: istio-system
+  updateStrategy:
+    inactiveRevisionDeletionGracePeriodSeconds: 30
+    type: InPlace
+  values:
+    global:
+      configCluster: true
+      istioNamespace: istio-system
+      logAsJson: true
+      logging:
+        level: http:debug,http2:debug,router:debug
+      meshID: corporate
+      multiCluster:
+        clusterName: corporate
+      network: corporate
+      platform: openshift
+      defaultConfig:
+        meshId: corporate
+      discoverySelectors:
+        - matchExpressions:
+            - key: maistra.io/member-of
+              operator: DoesNotExist
+            - key: istio.io/rev
+              operator: Exists
+    telemetry:
+      enabled: true
+      v2:
+        enabled: true
+        prometheus:
+          enabled: true
+  version: v1.26-latest

@@ -1,0 +1,12 @@
+apiVersion: networking.istio.io/v1beta1
+kind: WorkloadGroup
+metadata:
+  name: mesh
+  namespace: vms
+spec:
+  metadata:
+    labels:
+      vm.kubevirt.io/name: mesh
+  template:
+    network: corporate
+    serviceAccount: mesh

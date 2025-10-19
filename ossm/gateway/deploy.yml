@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+  name: istio-eastwestgateway
+  labels:
+    istio: eastwestgateway
+    app: istio-eastwestgateway
+spec:
+  selector:
+    matchLabels:
+      istio: eastwestgateway
+      topology.istio.io/network: corporate
+  template:
+    metadata:
+      annotations:
+        inject.istio.io/templates: gateway
+      labels:
+        istio: eastwestgateway
+        sidecar.istio.io/inject: "true"
+        topology.istio.io/network: corporate
+    spec:
+      containers:
+      - name: istio-proxy
+        image: auto
+        env:
+        - name: ISTIO_META_REQUESTED_NETWORK_VIEW
+          value: corporate

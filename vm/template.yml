@@ -1,0 +1,122 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  annotations:
+    description: RHEL mesh template
+    iconClass: icon-rhel
+    name.os.template.kubevirt.io/redhat: RHEL
+    openshift.io/display-name: RHEL VM
+  labels:
+    os.template.kubevirt.io/redhat: "true"
+    template.kubevirt.io/type: vm
+    workload.template.kubevirt.io/server: "true"
+  name: mesh
+  namespace: vms
+objects:
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachine
+  metadata:
+    annotations:
+      description: Mesh VM
+    labels:
+      app: ${NAME}
+      os.template.kubevirt.io/redhat: "true"
+      vm.kubevirt.io/template: mesh
+    name: ${NAME}
+  spec:
+    running: false
+    template:
+      metadata:
+        annotations:
+          vm.kubevirt.io/flavor: small
+          vm.kubevirt.io/os: rhel
+          vm.kubevirt.io/workload: server
+        labels:
+          kubevirt.io/domain: ${NAME}
+          kubevirt.io/size: small
+          sidecar.istio.io/inject: "false"
+      spec:
+        domain:
+          cpu:
+            cores: 1
+            sockets: 1
+            threads: 1
+          devices:
+            disks:
+            - disk:
+                bus: virtio
+              name: rootdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+            - disk:
+                bus: virtio
+              name: servicemesh-driver-disk
+            interfaces:
+            - masquerade: {}
+              model: virtio
+              name: default
+            networkInterfaceMultiqueue: true
+            rng: {}
+          features:
+            acpi: {}
+            smm:
+              enabled: true
+          firmware:
+            bootloader:
+              efi: {}
+          machine:
+            type: q35
+          memory:
+            guest: 2Gi
+        hostname: ${NAME}
+        networks:
+        - name: default
+          pod: {}
+        terminationGracePeriodSeconds: 180
+        volumes:
+        - containerDisk:
+            image: registry.redhat.io/rhel9/rhel-guest-image:9.6
+          name: rootdisk
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              user: cloud-user
+              password: '${CLOUD_USER_PASSWORD}'
+              chpasswd: { expire: False }
+              bootcmd:
+                - "mkdir -p /var/run/secrets/tokens /var/run/secrets/kubernetes.io/serviceaccount /etc/certs/istio-ca"
+                - "mount -o,uid=994,gid=994,ro /dev/sda /var/run/secrets/tokens"
+                - "mount -o,uid=1000 /dev/sdb /var/run/secrets/kubernetes.io/serviceaccount"
+                - "mount -o,uid=994,gid=994,ro /dev/sdc /etc/certs/istio-ca"
+                - "mount /dev/vdc /mnt && dnf install -y /mnt/iptables* /mnt/glib* /mnt/lib* /mnt/istio-1.${ISTIOREL}.0-sidecar.rpm && umount /mnt"
+                - "ln -s /etc/certs/istio-ca/root-cert.pem /etc/certs/root-cert.pem"
+          name: cloudinitdisk
+        - name: ${SERVICE_ACCOUNT_NAME}-istio-token-disk
+          secret:
+            optional: true
+            secretName: ${SERVICE_ACCOUNT_NAME}-istio-token
+        - name: ${SERVICE_ACCOUNT_NAME}-disk
+          serviceAccount:
+            serviceAccountName: ${SERVICE_ACCOUNT_NAME}
+        - configMap:
+            name: istio-ca-root-cert
+          name: istio-ca-disk
+        - name: servicemesh-driver-disk
+          persistentVolumeClaim:
+            claimName: servicemesh-driver-disk
+parameters:
+- description: Name for the new VM
+  from: mesh-[a-z0-9]{16}
+  generate: expression
+  name: NAME
+- description: Name of the Service Account to mount into the virtual machine
+  name: SERVICE_ACCOUNT_NAME
+  required: true
+- description: The Istio release version your Pilot is based on (24, 26, ...)
+  name: ISTIOREL
+  required: true
+- description: Randomized password for the cloud-init user
+  from: '[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+  generate: expression
+  name: CLOUD_USER_PASSWORD

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app: ipam-virt-workloads
+    olm.operatorgroup.uid/47d8257e-061c-4a6e-8ec6-cc1b6d12d336: ''
+    olm.operatorgroup.uid/ec0a2847-616e-4280-b1a9-b45f9116fc75: ''
+    openshift.io/cluster-monitoring: 'true'
+  name: openshift-cnv

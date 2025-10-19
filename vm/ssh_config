@@ -1,0 +1,10 @@
+Host vmi/*
+   ProxyCommand virtctl port-forward --stdio=true %h %p
+   StrictHostKeyChecking no
+   AddressFamily inet
+   UserKnownHostsFile /dev/null
+Host vm/*
+   ProxyCommand virtctl port-forward --stdio=true %h %p
+   StrictHostKeyChecking no
+   AddressFamily inet
+   UserKnownHostsFile /dev/null

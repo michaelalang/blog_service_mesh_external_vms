@@ -1,0 +1,18 @@
+defaultConfig:
+  discoveryAddress: istiod.istio-system.svc:15012
+  gatewayTopology:
+    numTrustedProxies: 3
+  meshId: corporate
+  proxyMetadata:
+    CANONICAL_REVISION: latest
+    CANONICAL_SERVICE: mesh
+    ISTIO_META_CLUSTER_ID: corporate
+    ISTIO_META_DNS_AUTO_ALLOCATE: "true"
+    ISTIO_META_DNS_CAPTURE: "true"
+    ISTIO_META_MESH_ID: corporate
+    ISTIO_META_NETWORK: corporate
+    ISTIO_META_WORKLOAD_NAME: mesh
+    ISTIO_METAJSON_LABELS: '{"service.istio.io/canonical-name":"mesh","service.istio.io/canonical-revision":"latest","vm.kubevirt.io/name":"mesh"}'
+    POD_NAMESPACE: vms
+    SERVICE_ACCOUNT: mesh
+    TRUST_DOMAIN: cluster.local
