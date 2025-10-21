@@ -5,7 +5,7 @@ cd driverdisk
 dnf download -y \
   iptables-nft \
   libnftnl \
-  glibc.i686 \ 
+  glibc.i686 \
   glibc-gconv-extra.i686 \
   libgcc.i686 \
   libmnl.i686
